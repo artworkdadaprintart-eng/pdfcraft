@@ -25,6 +25,7 @@ pub mod checks;
 pub mod overprint;
 pub mod separations;
 pub mod tac;
+pub mod trap;
 
 /// Where the viewer server answers. Same origin as the page this app is served from.
 pub const API: &str = "/api";
@@ -36,10 +37,11 @@ pub enum Section {
     Separations,
     Overprint,
     Tac,
+    Trap,
 }
 
 impl Section {
-    pub const ALL: [Self; 4] = [Self::Checks, Self::Separations, Self::Overprint, Self::Tac];
+    pub const ALL: [Self; 5] = [Self::Checks, Self::Separations, Self::Overprint, Self::Tac, Self::Trap];
 
     pub fn label(self) -> &'static str {
         match self {
@@ -47,6 +49,7 @@ impl Section {
             Self::Separations => "Separations",
             Self::Overprint => "Overprint",
             Self::Tac => "Ink coverage",
+            Self::Trap => "Trap",
         }
     }
 
@@ -57,6 +60,7 @@ impl Section {
             Self::Separations => "sep:",
             Self::Overprint => "overprint:",
             Self::Tac => "tac",
+            Self::Trap => "trap:",
         }
     }
 
@@ -67,6 +71,7 @@ impl Section {
             "separations" => Some(Self::Separations),
             "overprint" => Some(Self::Overprint),
             "tac" => Some(Self::Tac),
+            "trap" => Some(Self::Trap),
             _ => None,
         }
     }
@@ -109,6 +114,9 @@ pub struct State {
     pub separations: HashMap<usize, Shared>,
     pub overprint: HashMap<usize, Shared>,
     pub tac: HashMap<usize, Shared>,
+    pub trap: HashMap<usize, Shared>,
+    /// The last "Trap this file" answer (`/api/trap_save`): one per document.
+    pub trap_save: Shared,
     pub overlays: Vec<Overlay>,
     /// A check item to zoom to on the next paint: 0-based page, view-space bbox (pt, y down).
     pub zoom_to: Option<(usize, [f32; 4])>,
@@ -124,6 +132,7 @@ impl State {
             Section::Separations => &mut self.separations,
             Section::Overprint => &mut self.overprint,
             Section::Tac => &mut self.tac,
+            Section::Trap => &mut self.trap,
         };
         map.entry(page).or_default().clone()
     }
@@ -173,6 +182,7 @@ pub(crate) fn panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
         Section::Separations => format!("{API}/separations?page={}", page + 1),
         Section::Overprint => format!("{API}/overprint?page={}", page + 1),
         Section::Tac => format!("{API}/tac?page={}", page + 1),
+        Section::Trap => trap::url(page, trap::knobs(&ctx)),
     };
     ensure_json(&slot, &url, &ctx);
     let state = slot.lock().map(|l| l.clone()).unwrap_or_default();
@@ -195,6 +205,7 @@ pub(crate) fn panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
                 Section::Separations => separations::panel(ui, t, view, &json, &ctx),
                 Section::Overprint => overprint::panel(ui, t, view, &json, &ctx),
                 Section::Tac => tac::panel(ui, t, view, &json, &ctx),
+                Section::Trap => trap::panel(ui, t, view, &json, &ctx),
             });
         }
     }
@@ -399,6 +410,7 @@ mod tests {
                     Section::Separations => "separations",
                     Section::Overprint => "overprint",
                     Section::Tac => "tac",
+                    Section::Trap => "trap",
                 }
             );
             assert_eq!(Section::from_command(&id), Some(s));
@@ -413,6 +425,7 @@ mod tests {
         assert!(!"sep:Cyan".starts_with(Section::Overprint.overlay_prefix()));
         assert!("overprint:press".starts_with(Section::Overprint.overlay_prefix()));
         assert!("tac".starts_with(Section::Tac.overlay_prefix()));
+        assert!("trap:overlay".starts_with(Section::Trap.overlay_prefix()) && !"trap:overlay".starts_with(Section::Tac.overlay_prefix()));
         assert!(Section::Checks.overlay_prefix().is_empty(), "Checks paints no overlay");
     }
 

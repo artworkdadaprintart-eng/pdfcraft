@@ -117,6 +117,12 @@ pub struct State {
     pub trap: HashMap<usize, Shared>,
     /// The last "Trap this file" answer (`/api/trap_save`): one per document.
     pub trap_save: Shared,
+    /// `/api/info` (the named profiles and the editor link), fetched once per document.
+    pub info: Shared,
+    /// One-shot server actions (report, downsample, release, remap) by URL: Idle until clicked.
+    pub actions: HashMap<String, Shared>,
+    /// The last remap asked for from the Separations menu, so its answer stays on screen.
+    pub remap_url: Option<String>,
     pub overlays: Vec<Overlay>,
     /// A check item to zoom to on the next paint: 0-based page, view-space bbox (pt, y down).
     pub zoom_to: Option<(usize, [f32; 4])>,
@@ -178,7 +184,7 @@ pub(crate) fn panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
     let section = view.prepress.section;
     let slot = view.prepress.slot(section, page);
     let url = match section {
-        Section::Checks => format!("{API}/checks"),
+        Section::Checks => checks::url(&view.prepress.checks_ui),
         Section::Separations => format!("{API}/separations?page={}", page + 1),
         Section::Overprint => format!("{API}/overprint?page={}", page + 1),
         Section::Tac => format!("{API}/tac?page={}", page + 1),
@@ -201,7 +207,7 @@ pub(crate) fn panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
         }
         Load::Ready(json) => {
             egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| match section {
-                Section::Checks => checks::panel(ui, t, view, &json),
+                Section::Checks => checks::panel(ui, t, view, &json, &ctx),
                 Section::Separations => separations::panel(ui, t, view, &json, &ctx),
                 Section::Overprint => overprint::panel(ui, t, view, &json, &ctx),
                 Section::Tac => tac::panel(ui, t, view, &json, &ctx),
@@ -269,6 +275,72 @@ pub fn ensure_json(slot: &Shared, url: &str, ctx: &egui::Context) {
         *l = Load::Loading;
     }
     fetch_json(url.to_string(), slot.clone(), ctx.clone());
+}
+
+/// Start (or restart) a one-shot server action; its answer lands in `State::actions[url]`.
+pub(super) fn run_action(view: &mut DocView, ctx: &egui::Context, url: &str) {
+    let slot = view.prepress.actions.entry(url.to_string()).or_default().clone();
+    if let Ok(mut l) = slot.lock() {
+        *l = Load::Idle;
+    }
+    ensure_json(&slot, url, ctx);
+}
+
+/// The answer of a one-shot action beside its button: "Working…", then "Written: <file>" (hover = the full
+/// path, with MB before/after or the PDF/X-4 verdict when the server gives them) or the server's error.
+pub(super) fn action_status(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, ctx: &egui::Context, url: &str) {
+    let state = view.prepress.actions.get(url).and_then(|s| s.lock().ok().map(|l| l.clone())).unwrap_or_default();
+    match &state {
+        Load::Idle => {}
+        Load::Loading => {
+            ui.label(egui::RichText::new("Working…").color(t.text_muted));
+            ctx.request_repaint_after(std::time::Duration::from_millis(250));
+        }
+        Load::Ready(v) => {
+            let path = v["path"].as_str().or(v["pdf"].as_str()).unwrap_or("");
+            let name = path.rsplit(['/', '\\']).next().unwrap_or(path);
+            let mut extra = match (v["before_mb"].as_f64(), v["after_mb"].as_f64()) {
+                (Some(b), Some(a)) => format!(" ({b:.1} → {a:.2} MB)"),
+                _ => String::new(),
+            };
+            if let Some(c) = v["compliant"].as_bool() {
+                extra.push_str(if c { " - PDF/X-4 compliant" } else { " - NOT PDF/X-4 compliant" });
+            }
+            if let Some(n) = v["note"].as_str() {
+                extra.push_str(&format!(" - {n}"));
+            }
+            ui.label(egui::RichText::new(format!("Written: {name}{extra}")).color(Color32::from_rgb(0x0c, 0x87, 0x5d))).on_hover_text(path);
+        }
+        Load::Failed(e) => {
+            ui.colored_label(Color32::from_rgb(0xd5, 0x41, 0x41), e);
+        }
+    }
+}
+
+/// A pill that runs a one-shot server action on a click, never automatically, with its answer beside it.
+pub(super) fn action_button(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, ctx: &egui::Context, label: &str, url: &str, hover: &str) {
+    let busy = view.prepress.actions.get(url).is_some_and(|s| s.lock().map(|l| matches!(*l, Load::Loading)).unwrap_or(false));
+    if widgets::pill_button(ui, label, false).on_hover_text(hover).clicked() && !busy {
+        run_action(view, ctx, url);
+    }
+    action_status(ui, t, view, ctx, url);
+}
+
+/// `%`-escape the few characters an ink name can carry into a query value.
+pub fn qs(s: &str) -> String {
+    let mut out = String::new();
+    for c in s.chars() {
+        match c {
+            ' ' => out.push_str("%20"),
+            '#' => out.push_str("%23"),
+            '&' => out.push_str("%26"),
+            '%' => out.push_str("%25"),
+            '+' => out.push_str("%2B"),
+            '?' => out.push_str("%3F"),
+            _ => out.push(c),
+        }
+    }
+    out
 }
 
 /// Fetch a server PNG into a texture and add it as an overlay (idempotent per key+page). The
@@ -427,6 +499,13 @@ mod tests {
         assert!("tac".starts_with(Section::Tac.overlay_prefix()));
         assert!("trap:overlay".starts_with(Section::Trap.overlay_prefix()) && !"trap:overlay".starts_with(Section::Tac.overlay_prefix()));
         assert!(Section::Checks.overlay_prefix().is_empty(), "Checks paints no overlay");
+    }
+
+    #[test]
+    fn query_values_escape_ink_names() {
+        assert_eq!(qs("PANTONE Rubine Red C"), "PANTONE%20Rubine%20Red%20C");
+        assert_eq!(qs("A&B#1 +?%"), "A%26B%231%20%2B%3F%25");
+        assert_eq!(qs("Cyan"), "Cyan");
     }
 
     #[test]

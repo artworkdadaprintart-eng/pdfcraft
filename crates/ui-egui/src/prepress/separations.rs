@@ -46,6 +46,7 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
         }
     });
     ui.add_space(4.0);
+    let mut remap_to: Option<(String, String)> = None;
     egui::Grid::new("sep-table").num_columns(4).spacing([8.0, 6.0]).show(ui, |ui| {
         for (n, ink) in inks.iter().enumerate() {
             let name = ink["name"].as_str().unwrap_or("?");
@@ -65,7 +66,31 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             // Cut / Outside Bleed / Varnish / White: listed greyed, never a print ink (preflight_config.json technical_inks).
             let technical = matches!(ink["kind"].as_str(), Some("keyline" | "technical"));
             ui.vertical(|ui| {
-                ui.label(egui::RichText::new(name).color(if technical { t.text_faint } else { t.text }));
+                let resp = ui.add(
+                    egui::Label::new(egui::RichText::new(name).color(if technical { t.text_faint } else { t.text })).sense(egui::Sense::click()),
+                );
+                if ink["kind"].as_str() == Some("spot") {
+                    // Right-click a spot: map it onto a process plate or rename it - the server writes <name>_remapped.pdf.
+                    resp.on_hover_text("Right-click: map to a process plate or rename").context_menu(|ui| {
+                        for p in ["Cyan", "Magenta", "Yellow", "Black"] {
+                            if ui.button(format!("Map to {p}")).clicked() {
+                                remap_to = Some((name.to_string(), p.to_string()));
+                                ui.close();
+                            }
+                        }
+                        ui.separator();
+                        let id = egui::Id::new("prepress-sep-rename").with(name);
+                        let mut new_name = ui.data(|d| d.get_temp::<String>(id)).unwrap_or_default();
+                        ui.horizontal(|ui| {
+                            ui.add(egui::TextEdit::singleline(&mut new_name).hint_text("New ink name").desired_width(140.0));
+                            if ui.button("Rename").clicked() && !new_name.trim().is_empty() {
+                                remap_to = Some((name.to_string(), new_name.trim().to_string()));
+                                ui.close();
+                            }
+                        });
+                        ui.data_mut(|d| d.insert_temp(id, new_name));
+                    });
+                }
                 ui.label(
                     egui::RichText::new(format!(
                         "{}{} · {:.1}% coverage",
@@ -83,6 +108,17 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             ui.end_row();
         }
     });
+    if let Some((from, to)) = remap_to {
+        let url = format!("{}/remap?from={}&to={}", super::API, super::qs(&from), super::qs(&to));
+        super::run_action(view, ctx, &url);
+        view.prepress.remap_url = Some(url);
+    }
+    if let Some(url) = view.prepress.remap_url.clone() {
+        ui.horizontal_wrapped(|ui| {
+            ui.label(egui::RichText::new("Remap").small().color(t.text_muted));
+            super::action_status(ui, t, view, ctx, &url);
+        });
+    }
     // Alarms: the point of this panel, in red and zoomable.
     let alarms: &[Value] = json["alarms"].as_array().map_or(&[], Vec::as_slice);
     widgets::section_title(ui, &format!("{} alarm{}", alarms.len(), if alarms.len() == 1 { "" } else { "s" }));

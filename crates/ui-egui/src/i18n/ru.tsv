@@ -2358,6 +2358,8 @@ animation effects	Off	Выкл
 	Prepress separations	Допечатное цветоделение
 	Prepress overprint	Допечатная надпечатка
 	Prepress ink coverage (TAC)	Допечатное покрытие краской (TAC)
+	Trap	Треппинг
+	Prepress trap	Допечатный треппинг
 	XpressFlow Prepress read-me	Руководство XpressFlow Prepress
 	XpressFlow Prepress on GitHub	XpressFlow Prepress на GitHub
 	PdfCraft upstream (Apache-2.0)	Исходный PdfCraft (Apache-2.0)

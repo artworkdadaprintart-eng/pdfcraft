@@ -2722,6 +2722,8 @@ certificate	Version	الإصدار
 	Prepress separations	فصل ألوان ما قبل الطباعة
 	Prepress overprint	الطباعة الفوقية لما قبل الطباعة
 	Prepress ink coverage (TAC)	تغطية حبر ما قبل الطباعة (TAC)
+	Trap	تراكب الألوان
+	Prepress trap	تراكب ألوان ما قبل الطباعة
 	XpressFlow Prepress read-me	دليل XpressFlow Prepress
 	XpressFlow Prepress on GitHub	XpressFlow Prepress على GitHub
 	PdfCraft upstream (Apache-2.0)	مصدر PdfCraft الأصلي (Apache-2.0)

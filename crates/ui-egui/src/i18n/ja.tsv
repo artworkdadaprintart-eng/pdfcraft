@@ -2445,6 +2445,8 @@ animation effects	Off	オフ
 	Prepress separations	プリプレスの色分解
 	Prepress overprint	プリプレスのオーバープリント
 	Prepress ink coverage (TAC)	プリプレスのインキ総量 (TAC)
+	Trap	トラッピング
+	Prepress trap	プリプレス トラッピング
 	XpressFlow Prepress read-me	XpressFlow Prepress の説明
 	XpressFlow Prepress on GitHub	GitHub の XpressFlow Prepress
 	PdfCraft upstream (Apache-2.0)	元の PdfCraft (Apache-2.0)

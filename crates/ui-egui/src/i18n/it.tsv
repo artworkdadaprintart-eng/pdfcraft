@@ -2657,6 +2657,8 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Prepress separations	Separazioni di prestampa
 	Prepress overprint	Sovrastampa di prestampa
 	Prepress ink coverage (TAC)	Copertura d’inchiostro di prestampa (TAC)
+	Trap	Trapping
+	Prepress trap	Trapping di prestampa
 	XpressFlow Prepress read-me	Guida di XpressFlow Prepress
 	XpressFlow Prepress on GitHub	XpressFlow Prepress su GitHub
 	PdfCraft upstream (Apache-2.0)	PdfCraft originale (Apache-2.0)

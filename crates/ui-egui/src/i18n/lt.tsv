@@ -2696,6 +2696,8 @@ theme	Appearance	Išvaizda
 	Prepress separations	Paruošimo spaudai spalvų išskaidymas
 	Prepress overprint	Paruošimo spaudai perspauda
 	Prepress ink coverage (TAC)	Paruošimo spaudai dažų padengimas (TAC)
+	Trap	Perdengimas
+	Prepress trap	Priešspaudos perdengimas
 	XpressFlow Prepress read-me	XpressFlow Prepress vadovas
 	XpressFlow Prepress on GitHub	XpressFlow Prepress sistemoje GitHub
 	PdfCraft upstream (Apache-2.0)	Pirminis PdfCraft (Apache-2.0)

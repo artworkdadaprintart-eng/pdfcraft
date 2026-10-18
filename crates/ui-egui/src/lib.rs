@@ -97,6 +97,7 @@ mod page_selection_ui;
 mod pageboxes;
 mod palette;
 mod panels;
+pub mod prepress;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
 pub mod prepare;

@@ -508,6 +508,8 @@ pub struct DocView {
     pub block_drag: Option<crate::edit_text_ui::BlockDrag>,
     /// Commenting state: selected comment, gestures, composer.
     pub comments: crate::comments::CommentView,
+    /// XpressFlow Prepress: loaded sections, overlays on the page, a pending zoom-to.
+    pub prepress: crate::prepress::State,
     pub measure: crate::measure_ui::MeasureView,
     /// Form filling state: the focused field.
     pub forms: crate::forms_ui::FormView,
@@ -783,6 +785,7 @@ impl DocView {
             pan_hold_until: 0.0,
             slow_pages: HashSet::new(),
             comments: Default::default(),
+            prepress: Default::default(),
             measure: Default::default(),
             forms: Default::default(),
             prepare: Default::default(),
@@ -3332,6 +3335,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 crate::redact_ui::paint(ui, painter, i, view);
             }
             comments::paint_page(ui, painter, &pcx, view);
+            crate::prepress::paint_page(painter, &xf, i, view);
             if editing_content {
                 crate::content_ui::paint_page(ui, painter, &xf, i, info, &added, view);
             }

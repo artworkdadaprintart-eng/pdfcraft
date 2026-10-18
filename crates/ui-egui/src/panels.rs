@@ -166,6 +166,11 @@ fn tool_detail(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, g: &'static
         crate::measure_ui::panel(app, ui, t);
         return;
     }
+    // XpressFlow Prepress: the four sections, fed by the suite's viewer server.
+    if g.id == "prepress" {
+        crate::prepress::panel(app, ui, t);
+        return;
+    }
     // Add a stamp: the palette.
     if g.id == "stamp" {
         stamp_palette(app, ui, t);

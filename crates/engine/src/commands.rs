@@ -178,6 +178,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("prepress.separations", "Prepress separations", None, None, Document, "layers"),
     c("prepress.overprint", "Prepress overprint", None, None, Document, "droplet"),
     c("prepress.tac", "Prepress ink coverage (TAC)", None, None, Document, "gauge"),
+    c("prepress.trap", "Prepress trap", None, None, Document, "blend"),
     c("page.copy", "Copy pages", None, None, Document, "copy"),
     c("page.cut", "Cut pages", None, None, Assembly, "scissors"),
     c("page.paste", "Paste pages", None, None, Assembly, "clipboard-paste"),

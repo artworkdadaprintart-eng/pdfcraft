@@ -2446,6 +2446,8 @@ animation effects	Off	Aus
 	Prepress separations	Druckvorstufen-Farbauszüge
 	Prepress overprint	Druckvorstufen-Überdrucken
 	Prepress ink coverage (TAC)	Druckvorstufen-Farbauftrag (TAC)
+	Trap	Überfüllung
+	Prepress trap	Druckvorstufen-Überfüllung
 	XpressFlow Prepress read-me	XpressFlow Prepress-Anleitung
 	XpressFlow Prepress on GitHub	XpressFlow Prepress auf GitHub
 	PdfCraft upstream (Apache-2.0)	PdfCraft-Original (Apache-2.0)

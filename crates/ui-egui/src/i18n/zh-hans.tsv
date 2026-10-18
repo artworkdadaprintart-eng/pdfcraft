@@ -2397,3 +2397,19 @@ animation effects	Off	关
 	Make properties default	将属性设为默认
 	Pages selected	选定的页面
 	Page properties	页面属性
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	印前
+	Label press	标签印刷
+	Checks	检查
+	Separations	分色
+	Overprint	叠印
+	Ink coverage (TAC)	油墨总量 (TAC)
+	Prepress checks	印前检查
+	Prepress separations	印前分色
+	Prepress overprint	印前叠印
+	Prepress ink coverage (TAC)	印前油墨总量 (TAC)
+	XpressFlow Prepress read-me	XpressFlow Prepress 说明
+	XpressFlow Prepress on GitHub	GitHub 上的 XpressFlow Prepress
+	PdfCraft upstream (Apache-2.0)	原版 PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	关于 XpressFlow Prepress

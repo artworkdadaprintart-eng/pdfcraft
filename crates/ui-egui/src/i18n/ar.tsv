@@ -2710,3 +2710,19 @@ certificate	Version	الإصدار
 	Make properties default	جعل الخصائص افتراضية
 	Pages selected	الصفحات المحددة
 	Page properties	خصائص الصفحة
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	ما قبل الطباعة
+	Label press	طباعة الملصقات
+	Checks	الفحوصات
+	Separations	الفصل اللوني
+	Overprint	الطباعة الفوقية
+	Ink coverage (TAC)	تغطية الحبر (TAC)
+	Prepress checks	فحوصات ما قبل الطباعة
+	Prepress separations	فصل ألوان ما قبل الطباعة
+	Prepress overprint	الطباعة الفوقية لما قبل الطباعة
+	Prepress ink coverage (TAC)	تغطية حبر ما قبل الطباعة (TAC)
+	XpressFlow Prepress read-me	دليل XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress على GitHub
+	PdfCraft upstream (Apache-2.0)	مصدر PdfCraft الأصلي (Apache-2.0)
+	About XpressFlow Prepress	حول XpressFlow Prepress

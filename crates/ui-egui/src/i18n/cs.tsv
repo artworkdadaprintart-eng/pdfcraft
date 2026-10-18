@@ -2507,3 +2507,19 @@ animation effects	Off	Vypnuto
 	Make properties default	Nastavit vlastnosti jako výchozí
 	Pages selected	Vybrané stránky
 	Page properties	Vlastnosti stránky
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Předtisková příprava
+	Label press	Tisk etiket
+	Checks	Kontroly
+	Separations	Výtažky
+	Overprint	Přetisk
+	Ink coverage (TAC)	Pokrytí barvou (TAC)
+	Prepress checks	Předtiskové kontroly
+	Prepress separations	Předtiskové výtažky
+	Prepress overprint	Předtiskový přetisk
+	Prepress ink coverage (TAC)	Předtiskové pokrytí barvou (TAC)
+	XpressFlow Prepress read-me	Příručka XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress na GitHubu
+	PdfCraft upstream (Apache-2.0)	Původní PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	O aplikaci XpressFlow Prepress

@@ -2432,3 +2432,19 @@ animation effects	Off	Ki
 	Make properties default	Tulajdonságok beállítása alapértelmezettként
 	Pages selected	Kijelölt oldalak
 	Page properties	Oldaltulajdonságok
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Nyomdai előkészítés
+	Label press	Címkenyomtatás
+	Checks	Ellenőrzések
+	Separations	Színkivonatok
+	Overprint	Felülnyomás
+	Ink coverage (TAC)	Festékfedettség (TAC)
+	Prepress checks	Nyomdai előkészítés – ellenőrzések
+	Prepress separations	Nyomdai előkészítés – színkivonatok
+	Prepress overprint	Nyomdai előkészítés – felülnyomás
+	Prepress ink coverage (TAC)	Nyomdai előkészítés – festékfedettség (TAC)
+	XpressFlow Prepress read-me	XpressFlow Prepress útmutató
+	XpressFlow Prepress on GitHub	XpressFlow Prepress a GitHubon
+	PdfCraft upstream (Apache-2.0)	Eredeti PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	Az XpressFlow Prepress névjegye

@@ -2346,3 +2346,19 @@ animation effects	Off	Выкл
 	Make properties default	Сделать свойства стандартными
 	Pages selected	Выделенные страницы
 	Page properties	Свойства страницы
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Допечатная подготовка
+	Label press	Печать этикеток
+	Checks	Проверки
+	Separations	Цветоделение
+	Overprint	Надпечатка
+	Ink coverage (TAC)	Покрытие краской (TAC)
+	Prepress checks	Допечатные проверки
+	Prepress separations	Допечатное цветоделение
+	Prepress overprint	Допечатная надпечатка
+	Prepress ink coverage (TAC)	Допечатное покрытие краской (TAC)
+	XpressFlow Prepress read-me	Руководство XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress на GitHub
+	PdfCraft upstream (Apache-2.0)	Исходный PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	О программе XpressFlow Prepress

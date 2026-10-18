@@ -2455,3 +2455,19 @@ animation effects	Off	Вимкнено
 	Make properties default	Зробити властивості типовими
 	Pages selected	Вибрані сторінки
 	Page properties	Властивості сторінки
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Додрукарська підготовка
+	Label press	Друк етикеток
+	Checks	Перевірки
+	Separations	Кольороподіл
+	Overprint	Наддрук
+	Ink coverage (TAC)	Покриття фарбою (TAC)
+	Prepress checks	Додрукарські перевірки
+	Prepress separations	Додрукарський кольороподіл
+	Prepress overprint	Додрукарський наддрук
+	Prepress ink coverage (TAC)	Додрукарське покриття фарбою (TAC)
+	XpressFlow Prepress read-me	Посібник XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress на GitHub
+	PdfCraft upstream (Apache-2.0)	Початковий PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	Про XpressFlow Prepress

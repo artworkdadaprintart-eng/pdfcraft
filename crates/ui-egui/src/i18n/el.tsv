@@ -2439,3 +2439,19 @@ animation effects	Off	Ανενεργά
 	Make properties default	Ορισμός ιδιοτήτων ως προεπιλογή
 	Pages selected	Επιλεγμένες σελίδες
 	Page properties	Ιδιότητες σελίδας
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Προεκτύπωση
+	Label press	Εκτύπωση ετικετών
+	Checks	Έλεγχοι
+	Separations	Διαχωρισμοί
+	Overprint	Επιτύπωση
+	Ink coverage (TAC)	Κάλυψη μελανιού (TAC)
+	Prepress checks	Έλεγχοι προεκτύπωσης
+	Prepress separations	Διαχωρισμοί προεκτύπωσης
+	Prepress overprint	Επιτύπωση προεκτύπωσης
+	Prepress ink coverage (TAC)	Κάλυψη μελανιού προεκτύπωσης (TAC)
+	XpressFlow Prepress read-me	Οδηγός XpressFlow Prepress
+	XpressFlow Prepress on GitHub	Το XpressFlow Prepress στο GitHub
+	PdfCraft upstream (Apache-2.0)	Αρχικό PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	Σχετικά με το XpressFlow Prepress

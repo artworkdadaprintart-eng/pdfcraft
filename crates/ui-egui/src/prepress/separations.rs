@@ -27,7 +27,8 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             ensure_overlay(view, ctx, &format!("sep:{name}"), page, url, Color32::WHITE);
         }
     }
-    widgets::section_title(ui, &format!("{} inks · page {}", inks.len(), page + 1));
+    let print = json["print_inks"].as_u64().map_or(String::new(), |n| format!(" · {n} print"));
+    widgets::section_title(ui, &format!("{} inks{print} · page {}", inks.len(), page + 1));
     ui.horizontal_wrapped(|ui| {
         for (label, on) in [("All", true), ("None", false)] {
             if widgets::pill_button(ui, label, false).clicked() {
@@ -61,12 +62,15 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             let (r, _) = ui.allocate_exact_size(egui::vec2(14.0, 14.0), egui::Sense::hover());
             ui.painter().rect_filled(r, 3.0, ink_rgb(ink));
             ui.painter().rect_stroke(r, 3.0, egui::Stroke::new(1.0, t.border), egui::StrokeKind::Inside);
+            // Cut / Outside Bleed / Varnish / White: listed greyed, never a print ink (preflight_config.json technical_inks).
+            let technical = matches!(ink["kind"].as_str(), Some("keyline" | "technical"));
             ui.vertical(|ui| {
-                ui.label(egui::RichText::new(name).color(t.text));
+                ui.label(egui::RichText::new(name).color(if technical { t.text_faint } else { t.text }));
                 ui.label(
                     egui::RichText::new(format!(
-                        "{} · {:.1}% coverage",
+                        "{}{} · {:.1}% coverage",
                         ink["kind"].as_str().unwrap_or(""),
+                        if technical { " (not printed)" } else { "" },
                         ink["coverage_pct"].as_f64().unwrap_or(0.0)
                     ))
                     .small()

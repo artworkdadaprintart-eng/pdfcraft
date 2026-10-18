@@ -52,10 +52,10 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             ui.label(egui::RichText::new((n + 1).to_string()).color(t.text_faint));
             match view.prepress.overlay_mut(&key, page) {
                 Some(o) => {
-                    ui.checkbox(&mut o.on, "");
+                    ui.add(crate::widgets::checkbox(&mut o.on, ""));
                 }
                 None => {
-                    ui.add_enabled(false, egui::Checkbox::new(&mut true, ""));
+                    ui.add_enabled(false, crate::widgets::checkbox(&mut true, ""));
                 }
             }
             let (r, _) = ui.allocate_exact_size(egui::vec2(14.0, 14.0), egui::Sense::hover());

@@ -22,7 +22,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
         egui::Frame::NONE.inner_margin(egui::Margin { left: 36, right: 36, top: 28, bottom: 28 }).show(ui, |ui| {
-            ui.label(egui::RichText::new("XpressFlow Prepress").font(theme::semibold(24.0)));
+            ui.label(egui::RichText::new("Welcome to XpressFlow Prepress").font(theme::semibold(24.0)));
             ui.label(
                 egui::RichText::new("Label-press prepress on an open-source PDF workbench (PdfCraft, Apache-2.0).")
                     .color(t.text_muted)

@@ -12,7 +12,6 @@ use crate::{DocView, widgets};
 use super::overprint::{page0, status_pill, zoom_button};
 use super::{Load, Section, bbox};
 
-const OVERLAY: &str = "trap:overlay";
 pub const DIRECTIONS: [&str; 3] = ["auto", "spread", "choke"];
 
 /// The knobs, kept in egui temp data: the panel is the only reader.
@@ -21,11 +20,24 @@ pub struct Knobs {
     pub mm: f32,
     /// Index into [`DIRECTIONS`].
     pub direction: usize,
+    /// Paint every trap in one bright colour instead of its ink's (a trap in its own ink is invisible on that ink).
+    pub highlight: bool,
 }
 
 impl Default for Knobs {
     fn default() -> Self {
-        Self { mm: 0.07, direction: 0 }
+        Self { mm: 0.07, direction: 0, highlight: true }
+    }
+}
+
+impl Knobs {
+    fn query(self) -> String {
+        format!("trap_mm={:.2}&trap_direction={}{}", self.mm, DIRECTIONS[self.direction.min(2)], if self.highlight { "&highlight=1" } else { "" })
+    }
+
+    /// The overlay key for these knobs: a knob change must fetch its own PNG, never reuse the last one.
+    fn overlay_key(self) -> String {
+        format!("trap:{}", self.query())
     }
 }
 
@@ -37,14 +49,14 @@ pub fn knobs(ctx: &egui::Context) -> Knobs {
     ctx.data(|d| d.get_temp::<Knobs>(knobs_id())).unwrap_or_default()
 }
 
-/// `/api/trap?page=<1-based>&trap_mm=0.07&trap_direction=auto`.
+/// `/api/trap?page=<1-based>&trap_mm=0.07&trap_direction=auto[&highlight=1]`.
 pub fn url(page0: usize, k: Knobs) -> String {
-    format!("{}/trap?page={}&trap_mm={:.2}&trap_direction={}", super::API, page0 + 1, k.mm, DIRECTIONS[k.direction.min(2)])
+    format!("{}/trap?page={}&{}", super::API, page0 + 1, k.query())
 }
 
 /// `/api/trap_save?trap_mm=0.07&trap_direction=auto` - writes `<name>_trapped.pdf` beside the file.
 pub fn save_url(k: Knobs) -> String {
-    format!("{}/trap_save?trap_mm={:.2}&trap_direction={}", super::API, k.mm, DIRECTIONS[k.direction.min(2)])
+    format!("{}/trap_save?{}", super::API, Knobs { highlight: false, ..k }.query())
 }
 
 #[derive(Debug, PartialEq)]
@@ -127,19 +139,13 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             }
         }
     });
-    if k != before {
-        ctx.data_mut(|d| d.insert_temp(knobs_id(), k));
-        if let Ok(mut l) = view.prepress.slot(Section::Trap, view.current).lock() {
-            *l = Load::Idle;
-        }
-        view.prepress.clear_overlays("trap:");
-    }
-
-    // The overlay, togglable.
+    // The overlay, togglable. Its key carries the knobs, so the frame after a knob change (this JSON is
+    // still the old one) cannot put the old PNG back under the new key.
     let show_id = egui::Id::new("prepress-trap-show");
     let mut show = ui.data(|d| d.get_temp::<bool>(show_id)).unwrap_or(true);
     ui.horizontal_wrapped(|ui| {
         ui.add(widgets::checkbox(&mut show, "Show trap"));
+        ui.add(widgets::checkbox(&mut k.highlight, "Highlight"));
         if widgets::pill_button(ui, "Re-run", false).clicked() {
             if let Ok(mut l) = view.prepress.slot(Section::Trap, view.current).lock() {
                 *l = Load::Idle;
@@ -148,12 +154,20 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
         }
     });
     ui.data_mut(|d| d.insert_temp(show_id, show));
-    let png = json["png"].as_str().unwrap_or("");
-    if !png.is_empty() {
-        super::ensure_overlay(view, ctx, OVERLAY, page, png, Color32::WHITE);
+    if k != before {
+        ctx.data_mut(|d| d.insert_temp(knobs_id(), k));
+        if let Ok(mut l) = view.prepress.slot(Section::Trap, view.current).lock() {
+            *l = Load::Idle;
+        }
+        view.prepress.clear_overlays("trap:");
     }
-    for o in view.prepress.overlays.iter_mut().filter(|o| o.key == OVERLAY) {
-        o.on = show;
+    let key = k.overlay_key();
+    let png = json["png"].as_str().unwrap_or("");
+    if !png.is_empty() && k == before {
+        super::ensure_overlay(view, ctx, &key, page, png, Color32::WHITE);
+    }
+    for o in view.prepress.overlays.iter_mut().filter(|o| o.key.starts_with("trap:")) {
+        o.on = show && o.key == key;
     }
 
     // Trap this file: only on a click, never automatic.
@@ -185,14 +199,16 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
     });
 
     widgets::section_title(ui, "Inks");
-    egui::Grid::new("prepress-trap-inks").num_columns(5).spacing([8.0, 2.0]).show(ui, |ui| {
+    // One line per ink: the panel is narrow, so the two areas share a cell ("+added / -pulled back").
+    egui::Grid::new("prepress-trap-inks").num_columns(4).spacing([8.0, 2.0]).show(ui, |ui| {
         for (n, i) in inks.iter().enumerate() {
             ui.label(egui::RichText::new(format!("{}", n + 1)).color(t.text_faint).monospace());
             swatch(ui, i.rgb);
             ui.label(egui::RichText::new(&i.name).color(t.text));
-            let dim = |v: f64, what: &str| egui::RichText::new(format!("{v:.1} mm² {what}")).color(if v > 0.0 { t.text } else { t.text_faint });
-            ui.label(dim(i.gain_mm2, "added"));
-            ui.label(dim(i.loss_mm2, "pulled back"));
+            let any = i.gain_mm2 > 0.0 || i.loss_mm2 > 0.0;
+            ui.label(
+                egui::RichText::new(format!("+{:.1} / -{:.1} mm²", i.gain_mm2, i.loss_mm2)).color(if any { t.text } else { t.text_faint }).small(),
+            );
             ui.end_row();
         }
     });
@@ -216,10 +232,16 @@ mod tests {
 
     #[test]
     fn urls_carry_the_knobs() {
-        assert_eq!(url(0, Knobs::default()), "/api/trap?page=1&trap_mm=0.07&trap_direction=auto");
-        assert_eq!(url(2, Knobs { mm: 0.1, direction: 2 }), "/api/trap?page=3&trap_mm=0.10&trap_direction=choke");
-        assert_eq!(save_url(Knobs { mm: 0.125, direction: 1 }), "/api/trap_save?trap_mm=0.12&trap_direction=spread");
-        assert_eq!(url(0, Knobs { mm: 0.07, direction: 9 }), url(0, Knobs { mm: 0.07, direction: 2 }), "a bad index clamps");
+        let plain = Knobs { highlight: false, ..Knobs::default() };
+        assert_eq!(url(0, Knobs::default()), "/api/trap?page=1&trap_mm=0.07&trap_direction=auto&highlight=1");
+        assert_eq!(url(2, Knobs { mm: 0.1, direction: 2, ..plain }), "/api/trap?page=3&trap_mm=0.10&trap_direction=choke");
+        assert_eq!(
+            save_url(Knobs { mm: 0.125, direction: 1, highlight: true }),
+            "/api/trap_save?trap_mm=0.12&trap_direction=spread",
+            "saving never highlights"
+        );
+        assert_eq!(url(0, Knobs { direction: 9, ..plain }), url(0, Knobs { direction: 2, ..plain }), "a bad index clamps");
+        assert_ne!(Knobs::default().overlay_key(), plain.overlay_key(), "each knob set owns its overlay");
     }
 
     #[test]

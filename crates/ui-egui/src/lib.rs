@@ -97,10 +97,10 @@ mod page_selection_ui;
 mod pageboxes;
 mod palette;
 mod panels;
-pub mod prepress;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
 pub mod prepare;
+pub mod prepress;
 mod print_ui;
 mod signature_drag;
 pub mod units;

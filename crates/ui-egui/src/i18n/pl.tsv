@@ -2421,6 +2421,8 @@ animation effects	Off	Wyłączone
 	Prepress separations	Wyciągi barwne przygotowania do druku
 	Prepress overprint	Nadruk przygotowania do druku
 	Prepress ink coverage (TAC)	Pokrycie farbą przygotowania do druku (TAC)
+	Trap	Zalewka
+	Prepress trap	Zalewka prepress
 	XpressFlow Prepress read-me	Przewodnik XpressFlow Prepress
 	XpressFlow Prepress on GitHub	XpressFlow Prepress w serwisie GitHub
 	PdfCraft upstream (Apache-2.0)	Oryginalny PdfCraft (Apache-2.0)

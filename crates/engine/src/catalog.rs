@@ -91,6 +91,7 @@ pub static TOOL_GROUPS: &[ToolGroup] = &[
                 item("Separations", "layers", "prepress.separations", Ready),
                 item("Overprint", "droplet", "prepress.overprint", Ready),
                 item("Ink coverage (TAC)", "gauge", "prepress.tac", Ready),
+                item("Trap", "blend", "prepress.trap", Ready),
             ],
         }],
     },

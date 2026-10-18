@@ -2698,6 +2698,8 @@ key	Space	Space
 	Prepress separations	Tách màu tiền in
 	Prepress overprint	In chồng tiền in
 	Prepress ink coverage (TAC)	Độ phủ mực tiền in (TAC)
+	Trap	Trapping
+	Prepress trap	Trapping tiền in
 	XpressFlow Prepress read-me	Hướng dẫn XpressFlow Prepress
 	XpressFlow Prepress on GitHub	XpressFlow Prepress trên GitHub
 	PdfCraft upstream (Apache-2.0)	PdfCraft gốc (Apache-2.0)

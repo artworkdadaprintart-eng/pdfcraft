@@ -2450,6 +2450,8 @@ animation effects	Off	Izklopljeni
 	Prepress separations	Barvni izvlečki priprave za tisk
 	Prepress overprint	Nadtisk priprave za tisk
 	Prepress ink coverage (TAC)	Pokritost z barvo priprave za tisk (TAC)
+	Trap	Prekrivanje
+	Prepress trap	Predtiskovno prekrivanje
 	XpressFlow Prepress read-me	Priročnik XpressFlow Prepress
 	XpressFlow Prepress on GitHub	XpressFlow Prepress na GitHubu
 	PdfCraft upstream (Apache-2.0)	Izvorni PdfCraft (Apache-2.0)

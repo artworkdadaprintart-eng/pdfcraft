@@ -2444,6 +2444,8 @@ animation effects	Off	Ki
 	Prepress separations	Nyomdai előkészítés – színkivonatok
 	Prepress overprint	Nyomdai előkészítés – felülnyomás
 	Prepress ink coverage (TAC)	Nyomdai előkészítés – festékfedettség (TAC)
+	Trap	Átfedés
+	Prepress trap	Nyomdai előkészítés – átfedés
 	XpressFlow Prepress read-me	XpressFlow Prepress útmutató
 	XpressFlow Prepress on GitHub	XpressFlow Prepress a GitHubon
 	PdfCraft upstream (Apache-2.0)	Eredeti PdfCraft (Apache-2.0)

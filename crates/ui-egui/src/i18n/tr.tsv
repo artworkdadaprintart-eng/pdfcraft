@@ -2441,6 +2441,8 @@ animation effects	Off	Kapalı
 	Prepress separations	Baskı öncesi renk ayrımları
 	Prepress overprint	Baskı öncesi üst baskı
 	Prepress ink coverage (TAC)	Baskı öncesi mürekkep kaplaması (TAC)
+	Trap	Trapping
+	Prepress trap	Baskı öncesi trapping
 	XpressFlow Prepress read-me	XpressFlow Prepress kılavuzu
 	XpressFlow Prepress on GitHub	GitHub’da XpressFlow Prepress
 	PdfCraft upstream (Apache-2.0)	Özgün PdfCraft (Apache-2.0)

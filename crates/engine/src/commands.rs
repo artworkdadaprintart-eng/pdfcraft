@@ -174,6 +174,10 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("measure.info", "Measurement information", None, None, Document, "ruler"),
     c("measure.snap", "Measurement snapping", None, None, Document, "ruler"),
     c("measure.export", "Export measurements as CSV", None, None, Document, "file-output"),
+    c("prepress.checks", "Prepress checks", None, None, Document, "list-checks"),
+    c("prepress.separations", "Prepress separations", None, None, Document, "layers"),
+    c("prepress.overprint", "Prepress overprint", None, None, Document, "droplet"),
+    c("prepress.tac", "Prepress ink coverage (TAC)", None, None, Document, "gauge"),
     c("page.copy", "Copy pages", None, None, Document, "copy"),
     c("page.cut", "Cut pages", None, None, Assembly, "scissors"),
     c("page.paste", "Paste pages", None, None, Assembly, "clipboard-paste"),
@@ -371,12 +375,11 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("page.split", "Split document…", PAGES, None, Assembly, "scissors"),
     c("page.number", "Number pages…", PAGES, None, Assembly, "hash"),
     c("help.shortcuts", "Keyboard shortcuts", HELP, None, Nothing, "circle-help"),
-    c("help.discord", "Join the ArtCraft Discord", HELP, None, Nothing, "messages-square"),
-    c("help.app_page", "PdfCraft web page", HELP, None, Nothing, "globe"),
-    c("help.github", "PdfCraft on GitHub", HELP, None, Nothing, "code-xml"),
-    c("help.website", "ArtCraft website", HELP, None, Nothing, "external-link"),
+    c("help.app_page", "XpressFlow Prepress read-me", HELP, None, Nothing, "globe"),
+    c("help.github", "XpressFlow Prepress on GitHub", HELP, None, Nothing, "code-xml"),
+    c("help.website", "PdfCraft upstream (Apache-2.0)", HELP, None, Nothing, "external-link"),
     c("help.check_updates", "Check for updates…", HELP, None, Nothing, "cloud"),
-    c("help.about", "About PdfCraft", HELP, None, Nothing, "info"),
+    c("help.about", "About XpressFlow Prepress", HELP, None, Nothing, "info"),
 ];
 
 pub fn command(id: &str) -> Option<&'static CommandSpec> {

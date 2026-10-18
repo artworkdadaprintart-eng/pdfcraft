@@ -2684,3 +2684,19 @@ key	Space	Tarpas
 	The password must have at least 6 characters.	Slaptažodį turi sudaryti bent 6 simboliai.
 	This file changed on disk. Reload it to see the new version; your unsaved changes will be lost.	Šis failas diske pasikeitė. Įkelkite jį iš naujo, kad pamatytumėte naują versiją; neįrašyti pakeitimai bus prarasti.
 theme	Appearance	Išvaizda
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Paruošimas spaudai
+	Label press	Etikečių spauda
+	Checks	Patikros
+	Separations	Spalvų išskaidymas
+	Overprint	Perspauda
+	Ink coverage (TAC)	Dažų padengimas (TAC)
+	Prepress checks	Paruošimo spaudai patikros
+	Prepress separations	Paruošimo spaudai spalvų išskaidymas
+	Prepress overprint	Paruošimo spaudai perspauda
+	Prepress ink coverage (TAC)	Paruošimo spaudai dažų padengimas (TAC)
+	XpressFlow Prepress read-me	XpressFlow Prepress vadovas
+	XpressFlow Prepress on GitHub	XpressFlow Prepress sistemoje GitHub
+	PdfCraft upstream (Apache-2.0)	Pirminis PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	Apie XpressFlow Prepress

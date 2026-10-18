@@ -2573,3 +2573,19 @@ animation effects	Off	Desactivados
 # Historical snapshot notice bar (View signed version / View revision).
 	You are viewing the signed version of “{from}” (revision {rev}). It is a snapshot: changes here won't affect the original.	Estás viendo la versión firmada de «{from}» (revisión {rev}). Es una instantánea: los cambios aquí no afectarán al original.
 	You are viewing revision {rev} of “{from}”. It is a snapshot: changes here won't affect the original.	Estás viendo la revisión {rev} de «{from}». Es una instantánea: los cambios aquí no afectarán al original.
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Preimpresión
+	Label press	Impresión de etiquetas
+	Checks	Comprobaciones
+	Separations	Separaciones
+	Overprint	Sobreimpresión
+	Ink coverage (TAC)	Cobertura de tinta (TAC)
+	Prepress checks	Comprobaciones de preimpresión
+	Prepress separations	Separaciones de preimpresión
+	Prepress overprint	Sobreimpresión de preimpresión
+	Prepress ink coverage (TAC)	Cobertura de tinta de preimpresión (TAC)
+	XpressFlow Prepress read-me	Guía de XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress en GitHub
+	PdfCraft upstream (Apache-2.0)	PdfCraft original (Apache-2.0)
+	About XpressFlow Prepress	Acerca de XpressFlow Prepress

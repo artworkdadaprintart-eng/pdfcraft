@@ -2433,3 +2433,19 @@ animation effects	Off	Désactivés
 	Make properties default	Définir comme propriétés par défaut
 	Pages selected	Pages sélectionnées
 	Page properties	Propriétés de la page
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Prépresse
+	Label press	Impression d’étiquettes
+	Checks	Contrôles
+	Separations	Séparations
+	Overprint	Surimpression
+	Ink coverage (TAC)	Couverture d’encre (TAC)
+	Prepress checks	Contrôles prépresse
+	Prepress separations	Séparations prépresse
+	Prepress overprint	Surimpression prépresse
+	Prepress ink coverage (TAC)	Couverture d’encre prépresse (TAC)
+	XpressFlow Prepress read-me	Guide XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress sur GitHub
+	PdfCraft upstream (Apache-2.0)	PdfCraft d’origine (Apache-2.0)
+	About XpressFlow Prepress	À propos de XpressFlow Prepress

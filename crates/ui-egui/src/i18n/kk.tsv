@@ -2431,3 +2431,19 @@ animation effects	Off	Өшірулі
 	Make properties default	Қасиеттерді әдепкі ету
 	Pages selected	Таңдалған беттер
 	Page properties	Бет қасиеттері
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Баспа алды дайындық
+	Label press	Жапсырма басу
+	Checks	Тексерулер
+	Separations	Түс бөлу
+	Overprint	Үстінен басу
+	Ink coverage (TAC)	Бояу жабыны (TAC)
+	Prepress checks	Баспа алды тексерулер
+	Prepress separations	Баспа алды түс бөлу
+	Prepress overprint	Баспа алды үстінен басу
+	Prepress ink coverage (TAC)	Баспа алды бояу жабыны (TAC)
+	XpressFlow Prepress read-me	XpressFlow Prepress нұсқаулығы
+	XpressFlow Prepress on GitHub	GitHub-тағы XpressFlow Prepress
+	PdfCraft upstream (Apache-2.0)	Түпнұсқа PdfCraft (Apache-2.0)
+	About XpressFlow Prepress	XpressFlow Prepress туралы

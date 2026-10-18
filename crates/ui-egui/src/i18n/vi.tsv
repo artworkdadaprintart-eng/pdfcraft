@@ -2686,3 +2686,19 @@ key	Space	Space
 # Historical snapshot notice bar (View signed version / View revision).
 	You are viewing the signed version of “{from}” (revision {rev}). It is a snapshot: changes here won't affect the original.	Bạn đang xem phiên bản đã ký của “{from}” (bản sửa đổi {rev}). Đây là ảnh nhanh: các thay đổi ở đây không được áp dụng đến bản gốc.
 	You are viewing revision {rev} of “{from}”. It is a snapshot: changes here won't affect the original.	Bạn đang xem bản sửa đổi {rev} của “{from}”. Đây là ảnh nhanh: các thay đổi ở đây không được áp dụng đến bản gốc.
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Tiền in
+	Label press	In nhãn
+	Checks	Kiểm tra
+	Separations	Tách màu
+	Overprint	In chồng
+	Ink coverage (TAC)	Độ phủ mực (TAC)
+	Prepress checks	Kiểm tra tiền in
+	Prepress separations	Tách màu tiền in
+	Prepress overprint	In chồng tiền in
+	Prepress ink coverage (TAC)	Độ phủ mực tiền in (TAC)
+	XpressFlow Prepress read-me	Hướng dẫn XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress trên GitHub
+	PdfCraft upstream (Apache-2.0)	PdfCraft gốc (Apache-2.0)
+	About XpressFlow Prepress	Giới thiệu XpressFlow Prepress

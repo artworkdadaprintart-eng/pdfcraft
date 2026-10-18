@@ -2645,3 +2645,19 @@ certificate	Key usage	Utilizzo chiave
 certificate	Self-signed	Autofirmato
 certificate	SHA-1 digest	Impronta SHA-1
 certificate	SHA-256 digest	Impronta SHA-256
+
+# XpressFlow Prepress (fork): the Prepress tool group and its links
+	Prepress	Prestampa
+	Label press	Stampa di etichette
+	Checks	Controlli
+	Separations	Separazioni
+	Overprint	Sovrastampa
+	Ink coverage (TAC)	Copertura d’inchiostro (TAC)
+	Prepress checks	Controlli di prestampa
+	Prepress separations	Separazioni di prestampa
+	Prepress overprint	Sovrastampa di prestampa
+	Prepress ink coverage (TAC)	Copertura d’inchiostro di prestampa (TAC)
+	XpressFlow Prepress read-me	Guida di XpressFlow Prepress
+	XpressFlow Prepress on GitHub	XpressFlow Prepress su GitHub
+	PdfCraft upstream (Apache-2.0)	PdfCraft originale (Apache-2.0)
+	About XpressFlow Prepress	Informazioni su XpressFlow Prepress

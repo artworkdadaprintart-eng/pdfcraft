@@ -71,8 +71,29 @@ const GREEN: [u8; 3] = [0x2D, 0x9D, 0x5B];
 const ORANGE: [u8; 3] = [0xE8, 0x8A, 0x1A];
 const TEAL: [u8; 3] = [0x14, 0x9C, 0xA8];
 const PINK: [u8; 3] = [0xD6, 0x3B, 0x8F];
+/// XpressFlow kit brand purple (`--brand-purple` in the suite's ui.py).
+const XF_PURPLE: [u8; 3] = [0x38, 0x30, 0x84];
 
 pub static TOOL_GROUPS: &[ToolGroup] = &[
+    // XpressFlow Prepress: the label-press checks from the suite's viewer server (preflight-prepress/viewer),
+    // drawn inside this app. Each item opens the Prepress panel on that section.
+    ToolGroup {
+        id: "prepress",
+        label: "Prepress",
+        icon: "printer",
+        hue: XF_PURPLE,
+        badge: Some("XF"),
+        availability: Ready,
+        sections: &[ToolSection {
+            title: "Label press",
+            items: &[
+                item("Checks", "list-checks", "prepress.checks", Ready),
+                item("Separations", "layers", "prepress.separations", Ready),
+                item("Overprint", "droplet", "prepress.overprint", Ready),
+                item("Ink coverage (TAC)", "gauge", "prepress.tac", Ready),
+            ],
+        }],
+    },
     ToolGroup {
         id: "export",
         label: "Export a PDF",

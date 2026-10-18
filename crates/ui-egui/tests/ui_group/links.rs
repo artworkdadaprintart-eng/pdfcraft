@@ -24,7 +24,7 @@ fn home_screen_links() {
         ("PdfCraft upstream (Apache-2.0)", "https://github.com/storytold/pdfcraft"),
     ] {
         let mut h = harness(|_| {});
-        h.get_by_label("XpressFlow Prepress");
+        h.get_by_label("Welcome to XpressFlow Prepress");
         h.get_by_label(label).click();
         h.run_steps(2);
         assert_eq!(h.state().last_opened_url.as_deref(), Some(url), "{label}");

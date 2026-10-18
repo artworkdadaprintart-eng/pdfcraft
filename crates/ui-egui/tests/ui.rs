@@ -1306,7 +1306,8 @@ fn the_drop_line_shows_in_front_of_the_first_tab() {
         for y in y0..y1.min(image.height()) {
             for x in x0..x1.min(image.width()) {
                 let p = image.get_pixel(x, y).0;
-                if p[2] > 100 && p[0] < 90 && p[1] < 90 && p[2] > p[1] + 40 {   // kit purple accent (#383084), not upstream blue
+                if p[2] > 100 && p[0] < 90 && p[1] < 90 && p[2] > p[1] + 40 {
+                    // kit purple accent (#383084), not upstream blue
                     n += 1;
                 }
             }

@@ -16,6 +16,13 @@ use super::{Load, bbox};
 #[derive(Default)]
 pub struct Ui {
     open: HashSet<usize>,
+    /// The named profile the checks run with (preflight_presets); empty = the server's default preset.
+    pub preset: String,
+}
+
+/// `/api/checks`, with `?preset=` when a profile other than the default is picked.
+pub fn url(ui: &Ui) -> String {
+    if ui.preset.is_empty() { format!("{}/checks", super::API) } else { format!("{}/checks?preset={}", super::API, super::qs(&ui.preset)) }
 }
 
 #[derive(Debug, PartialEq)]
@@ -139,7 +146,7 @@ fn label(text: impl Into<String>, font: egui::FontId, color: Color32) -> egui::L
     egui::Label::new(egui::RichText::new(text).font(font).color(color)).selectable(false)
 }
 
-pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Value) {
+pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Value, ctx: &egui::Context) {
     let rows = rows_from(json);
     let verdict = json["verdict"].as_str().unwrap_or("");
     ui.horizontal(|ui| {
@@ -152,6 +159,45 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
                 *l = Load::Idle;
             }
         });
+    });
+    // Named profiles (preflight_presets): pills from /api/info; a change re-fetches the checks with ?preset=.
+    let info = view.prepress.info.clone();
+    super::ensure_json(&info, &format!("{}/info", super::API), ctx);
+    let info = info.lock().map(|l| l.clone()).unwrap_or_default();
+    if let Load::Ready(i) = &info {
+        let default = i["preset"].as_str().unwrap_or("");
+        let names: Vec<String> = i["presets"].as_array().into_iter().flatten().filter_map(|v| v.as_str()).map(String::from).collect();
+        let current = if view.prepress.checks_ui.preset.is_empty() { default.to_string() } else { view.prepress.checks_ui.preset.clone() };
+        ui.horizontal_wrapped(|ui| {
+            ui.add(label("Profile", theme::semibold(10.0), t.text_faint));
+            for n in &names {
+                if widgets::pill_button(ui, n, *n == current).clicked() && *n != current {
+                    view.prepress.checks_ui.preset = if n == default { String::new() } else { n.clone() };
+                    if let Ok(mut l) = view.prepress.checks.lock() {
+                        *l = Load::Idle;
+                    }
+                }
+            }
+            if let Some(u) = i["presets_url"].as_str().filter(|u| !u.is_empty())
+                && widgets::pill_button(ui, "Edit profiles…", false).on_hover_text(u).clicked()
+            {
+                ctx.open_url(egui::OpenUrl::new_tab(u));
+            }
+        });
+    }
+    // Fixes and outputs, each written beside the PDF on a click, never automatically.
+    ui.horizontal_wrapped(|ui| {
+        super::action_button(ui, t, view, ctx, "Report PDF", &format!("{}/report", super::API), "<name>_report.pdf + _findings.csv beside the file");
+        super::action_button(
+            ui,
+            t,
+            view,
+            ctx,
+            "Downsample",
+            &format!("{}/downsample", super::API),
+            "Images above the profile's ppi resampled into <name>_light.pdf",
+        );
+        super::action_button(ui, t, view, ctx, "Release PDF/X-4", &format!("{}/release", super::API), "Kura writes <name>_x4.pdf and re-checks it");
     });
     ui.add_space(6.0);
     let (num_w, chip_w) = (18.0, 54.0);
@@ -233,6 +279,14 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_checks_url_carries_a_picked_profile_only() {
+        let mut u = Ui::default();
+        assert_eq!(url(&u), "/api/checks");
+        u.preset = "Flexo labels".into();
+        assert_eq!(url(&u), "/api/checks?preset=Flexo%20labels");
+    }
 
     #[test]
     fn rows_carry_status_items_and_zero_based_zoom_targets() {

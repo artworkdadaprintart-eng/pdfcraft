@@ -199,19 +199,20 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
     });
 
     widgets::section_title(ui, "Inks");
-    // One line per ink: the panel is narrow, so the two areas share a cell ("+added / -pulled back").
-    egui::Grid::new("prepress-trap-inks").num_columns(4).spacing([8.0, 2.0]).show(ui, |ui| {
-        for (n, i) in inks.iter().enumerate() {
+    // The panel is narrow: name on one line, the areas in small text under it.
+    for (n, i) in inks.iter().enumerate() {
+        ui.horizontal(|ui| {
             ui.label(egui::RichText::new(format!("{}", n + 1)).color(t.text_faint).monospace());
             swatch(ui, i.rgb);
             ui.label(egui::RichText::new(&i.name).color(t.text));
-            let any = i.gain_mm2 > 0.0 || i.loss_mm2 > 0.0;
-            ui.label(
-                egui::RichText::new(format!("+{:.1} / -{:.1} mm²", i.gain_mm2, i.loss_mm2)).color(if any { t.text } else { t.text_faint }).small(),
-            );
-            ui.end_row();
-        }
-    });
+        });
+        let any = i.gain_mm2 > 0.0 || i.loss_mm2 > 0.0;
+        ui.label(
+            egui::RichText::new(format!("    +{:.1} mm² added / -{:.1} mm² pulled back", i.gain_mm2, i.loss_mm2))
+                .color(if any { t.text_muted } else { t.text_faint })
+                .small(),
+        );
+    }
 
     widgets::section_title(ui, &format!("{} seams", seams.len()));
     for (n, s) in seams.iter().enumerate() {

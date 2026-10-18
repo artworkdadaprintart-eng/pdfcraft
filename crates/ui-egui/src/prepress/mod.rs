@@ -92,6 +92,7 @@ pub struct Overlay {
 pub struct State {
     pub section: Section,
     pub checks: Shared,
+    pub checks_ui: checks::Ui,
     /// By 0-based page.
     pub separations: HashMap<usize, Shared>,
     pub overprint: HashMap<usize, Shared>,

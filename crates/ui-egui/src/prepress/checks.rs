@@ -73,7 +73,7 @@ pub fn rows_from(json: &Value) -> Vec<Row> {
 }
 
 /// Kit colours: good / warn / bad, light or dark; anything else (SKIPPED, ERROR) is muted.
-fn status_color(t: &Tokens, status: &str) -> Option<Color32> {
+pub(super) fn status_color(t: &Tokens, status: &str) -> Option<Color32> {
     let d = t.dark();
     Some(match status {
         "PASS" => {
@@ -146,7 +146,8 @@ fn label(text: impl Into<String>, font: egui::FontId, color: Color32) -> egui::L
     egui::Label::new(egui::RichText::new(text).font(font).color(color)).selectable(false)
 }
 
-pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Value, ctx: &egui::Context) {
+/// `info` is `/api/info` (`Null` until it answers); `proof` greys the list out (the file is an approval proof).
+pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Value, ctx: &egui::Context, info: &Value, proof: bool) {
     let rows = rows_from(json);
     let verdict = json["verdict"].as_str().unwrap_or("");
     ui.horizontal(|ui| {
@@ -160,46 +161,42 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             }
         });
     });
-    // Named profiles (preflight_presets): pills from /api/info; a change re-fetches the checks with ?preset=.
-    let info = view.prepress.info.clone();
-    super::ensure_json(&info, &format!("{}/info", super::API), ctx);
-    let info = info.lock().map(|l| l.clone()).unwrap_or_default();
-    if let Load::Ready(i) = &info {
-        let default = i["preset"].as_str().unwrap_or("");
-        let names: Vec<String> = i["presets"].as_array().into_iter().flatten().filter_map(|v| v.as_str()).map(String::from).collect();
+    // Named profiles (preflight_presets) from /api/info in one dropdown; a change re-fetches the checks with ?preset=.
+    let names: Vec<String> = info["presets"].as_array().into_iter().flatten().filter_map(|v| v.as_str()).map(String::from).collect();
+    if !names.is_empty() {
+        let default = info["preset"].as_str().unwrap_or("");
         let current = if view.prepress.checks_ui.preset.is_empty() { default.to_string() } else { view.prepress.checks_ui.preset.clone() };
-        ui.horizontal_wrapped(|ui| {
-            ui.add(label("Profile", theme::semibold(10.0), t.text_faint));
-            for n in &names {
-                if widgets::pill_button(ui, n, *n == current).clicked() && *n != current {
-                    view.prepress.checks_ui.preset = if n == default { String::new() } else { n.clone() };
-                    if let Ok(mut l) = view.prepress.checks.lock() {
-                        *l = Load::Idle;
-                    }
+        let edit = info["presets_url"].as_str().filter(|u| !u.is_empty());
+        ui.horizontal(|ui| {
+            let mut picked = current.clone();
+            let w = (ui.available_width() - if edit.is_some() { 100.0 } else { 0.0 }).clamp(140.0, 320.0);
+            egui::ComboBox::from_id_salt("prepress-profile").selected_text(format!("Profile: {current}")).width(w).show_ui(ui, |ui| {
+                for n in &names {
+                    ui.selectable_value(&mut picked, n.clone(), n.as_str());
+                }
+            });
+            if picked != current {
+                view.prepress.checks_ui.preset = if picked == default { String::new() } else { picked };
+                if let Ok(mut l) = view.prepress.checks.lock() {
+                    *l = Load::Idle;
                 }
             }
-            if let Some(u) = i["presets_url"].as_str().filter(|u| !u.is_empty())
-                && widgets::pill_button(ui, "Edit profiles…", false).on_hover_text(u).clicked()
+            if let Some(u) = edit
+                && ui
+                    .add(label("Edit profiles…", theme::medium(12.0), t.accent_text).sense(Sense::click()))
+                    .on_hover_cursor(egui::CursorIcon::PointingHand)
+                    .on_hover_text(u)
+                    .clicked()
             {
                 ctx.open_url(egui::OpenUrl::new_tab(u));
             }
         });
     }
-    // Fixes and outputs, each written beside the PDF on a click, never automatically.
-    ui.horizontal_wrapped(|ui| {
-        super::action_button(ui, t, view, ctx, "Report PDF", &format!("{}/report", super::API), "<name>_report.pdf + _findings.csv beside the file");
-        super::action_button(
-            ui,
-            t,
-            view,
-            ctx,
-            "Downsample",
-            &format!("{}/downsample", super::API),
-            "Images above the profile's ppi resampled into <name>_light.pdf",
-        );
-        super::action_button(ui, t, view, ctx, "Release PDF/X-4", &format!("{}/release", super::API), "Kura writes <name>_x4.pdf and re-checks it");
-    });
     ui.add_space(6.0);
+    if proof {
+        // Still readable and clickable, but plainly not the file to judge.
+        ui.multiply_opacity(0.4);
+    }
     let (num_w, chip_w) = (18.0, 54.0);
     ui.horizontal(|ui| {
         ui.add_sized(vec2(num_w, 14.0), label("#", theme::semibold(10.0), t.text_faint));
@@ -210,25 +207,28 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
     for (n, row) in rows.iter().enumerate() {
         let open = view.prepress.checks_ui.open.contains(&n);
         let has_items = !row.items.is_empty();
+        let mut summary = row.summary.clone();
+        if has_items {
+            let k = row.items.len();
+            summary.push_str(&format!(" · {k} item{}", if k == 1 { "" } else { "s" }));
+        }
+        // One line: status | check | result; long text is cut with an ellipsis and shown whole on hover.
         let resp = click_block(ui, t, ui.id().with(("prepress-check", n)), open, |ui| {
             ui.add_sized(vec2(num_w, 16.0), label((n + 1).to_string(), theme::regular(11.0), t.text_faint));
             chip(ui, t, &row.status, chip_w);
             let w = ui.available_width() - if has_items { 18.0 } else { 0.0 };
-            ui.allocate_ui(vec2(w, 0.0), |ui| {
-                ui.vertical(|ui| {
-                    ui.set_width(w);
-                    ui.add(label(&row.name, theme::medium(12.5), t.text).wrap());
-                    let mut summary = row.summary.clone();
-                    if has_items {
-                        let k = row.items.len();
-                        summary.push_str(&format!(" · {k} item{}", if k == 1 { "" } else { "s" }));
-                    }
-                    ui.add(label(summary, theme::regular(11.0), t.text_muted).wrap());
-                });
+            let name_w = (w * 0.45).max(60.0);
+            ui.allocate_ui(vec2(name_w, 16.0), |ui| {
+                ui.set_min_width(name_w);
+                ui.add(label(&row.name, theme::medium(12.5), t.text).truncate());
+            });
+            ui.allocate_ui(vec2((w - name_w - ui.spacing().item_spacing.x).max(20.0), 16.0), |ui| {
+                ui.add(label(&summary, theme::regular(11.0), t.text_muted).truncate());
             });
         });
+        let resp = resp.on_hover_text(format!("{}\n{summary}", row.name));
         if has_items {
-            let r = Rect::from_center_size(egui::pos2(resp.rect.right() - 10.0, resp.rect.top() + 11.0), vec2(14.0, 14.0));
+            let r = Rect::from_center_size(egui::pos2(resp.rect.right() - 10.0, resp.rect.center().y), vec2(14.0, 14.0));
             icons::paint(ui, r, if open { "chevron-down" } else { "chevron-right" }, 14.0, t.text_muted);
         }
         if resp.clicked() && has_items {
@@ -244,31 +244,27 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
         }
         for (k, item) in row.items.iter().enumerate() {
             let note = item.note.strip_prefix(&format!("p{}: ", item.page + 1)).unwrap_or(&item.note);
+            let note = if item.bbox.is_none() { format!("{note} · whole page") } else { note.to_string() };
             let add = |ui: &mut egui::Ui| {
                 ui.add_space(num_w + 8.0);
                 ui.add_sized(vec2(26.0, 16.0), label(format!("p{}", item.page + 1), theme::semibold(11.0), t.text));
                 let w = ui.available_width() - 22.0;
-                ui.allocate_ui(vec2(w, 0.0), |ui| {
-                    ui.vertical(|ui| {
-                        ui.set_width(w);
-                        ui.add(label(note, theme::regular(11.0), t.text_muted).wrap());
-                        if item.bbox.is_none() {
-                            ui.add(label("whole page · nothing to zoom to", theme::regular(10.5), t.text_faint));
-                        }
-                    });
+                ui.allocate_ui(vec2(w.max(20.0), 16.0), |ui| {
+                    ui.add(label(&note, theme::regular(11.0), t.text_muted).truncate());
                 });
             };
             match item.bbox {
                 Some(bb) => {
-                    let resp = click_block(ui, t, ui.id().with(("prepress-check-item", n, k)), false, add).on_hover_text("Zoom to this");
-                    let r = Rect::from_center_size(egui::pos2(resp.rect.right() - 10.0, resp.rect.top() + 11.0), vec2(14.0, 14.0));
+                    let resp =
+                        click_block(ui, t, ui.id().with(("prepress-check-item", n, k)), false, add).on_hover_text(format!("{note}\nZoom to this"));
+                    let r = Rect::from_center_size(egui::pos2(resp.rect.right() - 10.0, resp.rect.center().y), vec2(14.0, 14.0));
                     icons::paint(ui, r, "zoom-in", 14.0, t.accent);
                     if resp.clicked() {
                         zoom(view, item.page, bb);
                     }
                 }
                 None => {
-                    ui.horizontal_top(add);
+                    ui.horizontal_top(add).response.on_hover_text(format!("{note}\nNothing to zoom to"));
                     ui.add_space(4.0);
                 }
             }

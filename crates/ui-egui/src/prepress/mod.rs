@@ -19,7 +19,10 @@ use serde_json::Value;
 
 use crate::canvas::PageXform;
 use crate::theme::Tokens;
-use crate::{DocView, LeftPanel, PdfCraftApp, widgets};
+use crate::{DocView, PdfCraftApp, widgets};
+
+/// The Tools column is widened to this when Prepress opens (one line per check needs the room).
+pub const PANEL_WIDTH: f32 = 420.0;
 
 pub mod checks;
 pub mod overprint;
@@ -155,8 +158,7 @@ impl State {
 
 /// `prepress.<section>` from the Tools sidebar, the palette or automation.
 pub(crate) fn command(app: &mut PdfCraftApp, id: &str) {
-    app.left = LeftPanel::Tool("prepress");
-    app.left_open = true;
+    app.select_tool("prepress");
     if let Some(section) = Section::from_command(id)
         && let Some((index, _)) = app.active_ids()
     {
@@ -173,6 +175,15 @@ pub(crate) fn panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
     let ctx = ui.ctx().clone();
     let view = &mut app.views[index];
     let page = view.current;
+    // `/api/info` (profiles, editor link, artwork-or-proof), once per document.
+    let info = view.prepress.info.clone();
+    ensure_json(&info, &format!("{API}/info"), &ctx);
+    let info = match info.lock().map(|l| l.clone()).unwrap_or_default() {
+        Load::Ready(i) => i,
+        _ => Value::Null,
+    };
+    let proof = proof_kind(&info);
+    proof_banner(ui, t, &info);
     ui.horizontal_wrapped(|ui| {
         for s in Section::ALL {
             if widgets::pill_button(ui, s.label(), view.prepress.section == s).clicked() {
@@ -192,6 +203,9 @@ pub(crate) fn panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
     };
     ensure_json(&slot, &url, &ctx);
     let state = slot.lock().map(|l| l.clone()).unwrap_or_default();
+    // The Outputs row is pinned to the bottom: the body gets the height above it (measured last frame).
+    let outputs_id = ui.id().with("prepress-outputs-height");
+    let outputs_h = ui.data(|d| d.get_temp::<f32>(outputs_id)).unwrap_or(44.0);
     match state {
         Load::Idle | Load::Loading => {
             ui.label(egui::RichText::new("Asking the viewer server…").color(t.text_muted));
@@ -206,14 +220,90 @@ pub(crate) fn panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
             }
         }
         Load::Ready(json) => {
-            egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| match section {
-                Section::Checks => checks::panel(ui, t, view, &json, &ctx),
+            let body_h = (ui.available_height() - outputs_h).max(80.0);
+            egui::ScrollArea::vertical().max_height(body_h).auto_shrink([false, false]).show(ui, |ui| match section {
+                Section::Checks => checks::panel(ui, t, view, &json, &ctx, &info, proof == Some("approval_proof")),
                 Section::Separations => separations::panel(ui, t, view, &json, &ctx),
                 Section::Overprint => overprint::panel(ui, t, view, &json, &ctx),
                 Section::Tac => tac::panel(ui, t, view, &json, &ctx),
                 Section::Trap => trap::panel(ui, t, view, &json, &ctx),
             });
         }
+    }
+    let gap = ui.available_height() - outputs_h;
+    if gap > 0.0 {
+        ui.add_space(gap);
+    }
+    let h = ui.scope(|ui| outputs(ui, t, view, &ctx)).response.rect.height() + ui.spacing().item_spacing.y;
+    ui.data_mut(|d| d.insert_temp(outputs_id, h));
+}
+
+/// `proof.kind` from `/api/info`: `Some("approval_proof")`, `Some("unknown")`, or `None` (artwork, or an
+/// older server without the field).
+pub fn proof_kind(info: &Value) -> Option<&str> {
+    info["proof"]["kind"].as_str().filter(|k| matches!(*k, "approval_proof" | "unknown"))
+}
+
+/// A banner when the open file is an approval proof rather than the artwork; a quiet line when the server
+/// could not tell. Hover shows the server's reason.
+fn proof_banner(ui: &mut egui::Ui, t: &Tokens, info: &Value) {
+    let why = |p: &Value| {
+        let mut s = p["why"].as_str().unwrap_or("").to_string();
+        if let Some(c) = p["confidence"].as_f64() {
+            s.push_str(&format!(" (confidence {c:.2})"));
+        }
+        if let Some(by) = p["by"].as_str() {
+            s.push_str(&format!(" - by {by}"));
+        }
+        s
+    };
+    match proof_kind(info) {
+        Some("approval_proof") => {
+            let c = checks::status_color(t, "FAIL").unwrap_or(t.text);
+            egui::Frame::NONE.fill(c.gamma_multiply(0.16)).corner_radius(egui::CornerRadius::same(8)).inner_margin(egui::Margin::same(10)).show(
+                ui,
+                |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.label(
+                        egui::RichText::new("This is an approval proof, not the artwork - open the artwork file")
+                            .font(crate::theme::semibold(12.0))
+                            .color(c),
+                    )
+                    .on_hover_text(why(&info["proof"]));
+                },
+            );
+            ui.add_space(6.0);
+        }
+        Some(_) => {
+            let c = checks::status_color(t, "WARN").unwrap_or(t.text_muted);
+            ui.label(egui::RichText::new("Could not tell artwork from proof").font(crate::theme::regular(11.0)).color(c))
+                .on_hover_text(why(&info["proof"]));
+            ui.add_space(4.0);
+        }
+        None => {}
+    }
+}
+
+/// Report PDF, Downsample and Release PDF/X-4: one row at the bottom of the panel, each written beside
+/// the PDF on a click, never automatically; their answers show under the row.
+fn outputs(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, ctx: &egui::Context) {
+    let actions = [
+        ("Report PDF", format!("{API}/report"), "<name>_report.pdf + _findings.csv beside the file"),
+        ("Downsample", format!("{API}/downsample"), "Images above the profile's ppi resampled into <name>_light.pdf"),
+        ("Release PDF/X-4", format!("{API}/release"), "Kura writes <name>_x4.pdf and re-checks it"),
+    ];
+    ui.separator();
+    ui.horizontal_wrapped(|ui| {
+        ui.label(egui::RichText::new("Outputs").font(crate::theme::semibold(10.0)).color(t.text_faint));
+        for (label, url, hover) in &actions {
+            let busy = view.prepress.actions.get(url).is_some_and(|s| s.lock().map(|l| matches!(*l, Load::Loading)).unwrap_or(false));
+            if widgets::pill_button(ui, label, false).on_hover_text(*hover).clicked() && !busy {
+                run_action(view, ctx, url);
+            }
+        }
+    });
+    for (_, url, _) in &actions {
+        action_status(ui, t, view, ctx, url);
     }
 }
 
@@ -286,7 +376,7 @@ pub(super) fn run_action(view: &mut DocView, ctx: &egui::Context, url: &str) {
     ensure_json(&slot, url, ctx);
 }
 
-/// The answer of a one-shot action beside its button: "Working…", then "Written: <file>" (hover = the full
+/// The answer of a one-shot action: "Working…", then "Written: <file>" (hover = the full
 /// path, with MB before/after or the PDF/X-4 verdict when the server gives them) or the server's error.
 pub(super) fn action_status(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, ctx: &egui::Context, url: &str) {
     let state = view.prepress.actions.get(url).and_then(|s| s.lock().ok().map(|l| l.clone())).unwrap_or_default();
@@ -315,15 +405,6 @@ pub(super) fn action_status(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, c
             ui.colored_label(Color32::from_rgb(0xd5, 0x41, 0x41), e);
         }
     }
-}
-
-/// A pill that runs a one-shot server action on a click, never automatically, with its answer beside it.
-pub(super) fn action_button(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, ctx: &egui::Context, label: &str, url: &str, hover: &str) {
-    let busy = view.prepress.actions.get(url).is_some_and(|s| s.lock().map(|l| matches!(*l, Load::Loading)).unwrap_or(false));
-    if widgets::pill_button(ui, label, false).on_hover_text(hover).clicked() && !busy {
-        run_action(view, ctx, url);
-    }
-    action_status(ui, t, view, ctx, url);
 }
 
 /// `%`-escape the few characters an ink name can carry into a query value.
@@ -499,6 +580,16 @@ mod tests {
         assert!("tac".starts_with(Section::Tac.overlay_prefix()));
         assert!("trap:overlay".starts_with(Section::Trap.overlay_prefix()) && !"trap:overlay".starts_with(Section::Tac.overlay_prefix()));
         assert!(Section::Checks.overlay_prefix().is_empty(), "Checks paints no overlay");
+    }
+
+    #[test]
+    fn proof_kind_reads_only_the_two_warning_kinds() {
+        let info = |kind: Value| serde_json::json!({"preset": "x", "proof": {"kind": kind, "confidence": 0.9, "why": "w", "by": "rules"}});
+        assert_eq!(proof_kind(&info("approval_proof".into())), Some("approval_proof"));
+        assert_eq!(proof_kind(&info("unknown".into())), Some("unknown"));
+        assert_eq!(proof_kind(&info("artwork".into())), None);
+        assert_eq!(proof_kind(&serde_json::json!({"preset": "x"})), None, "an older server has no proof field");
+        assert_eq!(proof_kind(&Value::Null), None, "/api/info not answered yet");
     }
 
     #[test]

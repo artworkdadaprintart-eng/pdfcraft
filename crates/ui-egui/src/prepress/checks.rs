@@ -255,7 +255,8 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
             };
             match item.bbox {
                 Some(bb) => {
-                    let resp = click_block(ui, t, ui.id().with(("prepress-check-item", n, k)), false, add).on_hover_text(format!("{note}\nZoom to this"));
+                    let resp =
+                        click_block(ui, t, ui.id().with(("prepress-check-item", n, k)), false, add).on_hover_text(format!("{note}\nZoom to this"));
                     let r = Rect::from_center_size(egui::pos2(resp.rect.right() - 10.0, resp.rect.center().y), vec2(14.0, 14.0));
                     icons::paint(ui, r, "zoom-in", 14.0, t.accent);
                     if resp.clicked() {

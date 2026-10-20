@@ -2134,9 +2134,6 @@ impl PdfCraftApp {
     pub(crate) fn select_tool(&mut self, id: &'static str) {
         self.left = LeftPanel::Tool(id);
         self.reveal_tools();
-        if id == "prepress" {
-            self.docking.widen_tools(prepress::PANEL_WIDTH);
-        }
         if let Some(view) = self.active.and_then(|i| self.views.get_mut(i)) {
             if id == "organize" {
                 view.open_organize();

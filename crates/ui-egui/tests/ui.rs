@@ -246,6 +246,17 @@ fn read_mode_closes_the_panes_and_leaving_it_brings_them_back() {
     assert_eq!(h.state().right, Some(RightPanel::Pages));
 }
 
+/// Prepress picked from All tools widens the Tools column (the click lands while the docking area
+/// holds the workspace, so the widening must survive it being put back), and the width is saved.
+#[test]
+fn prepress_from_all_tools_widens_the_tools_column() {
+    let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
+    assert!(!h.state().persist().contains("\"FixedFirst\":420.0"));
+    h.get_by_role_and_label(egui::accesskit::Role::Button, "Prepress").click();
+    h.run_steps(3);
+    assert!(h.state().persist().contains("\"FixedFirst\":420.0"), "Tools column widened to 420 and saved");
+}
+
 /// A pane closed in Read mode stays closed on the way out: leaving Read mode doesn't bring back the
 /// pane saved on the way in, and closing Comments keeps its close preference.
 #[test]

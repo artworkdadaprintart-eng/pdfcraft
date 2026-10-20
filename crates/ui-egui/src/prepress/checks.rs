@@ -169,7 +169,7 @@ pub(super) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, json: &Va
         let edit = info["presets_url"].as_str().filter(|u| !u.is_empty());
         ui.horizontal(|ui| {
             let mut picked = current.clone();
-            let w = (ui.available_width() - if edit.is_some() { 100.0 } else { 0.0 }).clamp(140.0, 320.0);
+            let w = (ui.available_width() - if edit.is_some() { 110.0 } else { 0.0 }).clamp(120.0, 320.0);
             egui::ComboBox::from_id_salt("prepress-profile").selected_text(format!("Profile: {current}")).width(w).show_ui(ui, |ui| {
                 for n in &names {
                     ui.selectable_value(&mut picked, n.clone(), n.as_str());

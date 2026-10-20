@@ -326,6 +326,11 @@ fn drain_reveals(workspace: &mut Workspace, app: &mut crate::PdfCraftApp) {
         if workspace.layout.contains(&panel) {
             let _ = workspace.apply(Action::Activate { panel });
         }
+        // Here, not in `select_tool`: a tool row is clicked while `show` holds the workspace, so a
+        // change made on `app.docking` then would be overwritten when `show` puts it back.
+        if panel == Panel::Tools && app.left == crate::LeftPanel::Tool("prepress") {
+            workspace.widen_tools(crate::prepress::PANEL_WIDTH);
+        }
     }
 }
 

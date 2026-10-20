@@ -161,6 +161,28 @@ impl Workspace {
         Ok(())
     }
 
+    /// Widen the Tools column to at least `min` points; a wider width the user dragged stays. The
+    /// workspace is saved with the settings, so the width survives a restart.
+    /// ponytail: a column dragged narrower than `min` widens again when the tool is reopened.
+    pub fn widen_tools(&mut self, min: f32) {
+        fn walk(node: &mut Node<Panel>, min: f32) {
+            let Node::Split { axis, size, first, second } = node else { return };
+            let has_tools = |n: &Node<Panel>| matches!(n, Node::Tabs { panels, .. } if panels.contains(&Panel::Tools));
+            if matches!(axis, SplitAxis::Horizontal) {
+                match size {
+                    SplitSize::FixedFirst(w) if has_tools(first) => *w = w.max(min),
+                    SplitSize::FixedSecond(w) if has_tools(second) => *w = w.max(min),
+                    _ => {}
+                }
+            }
+            walk(first, min);
+            walk(second, min);
+        }
+        if let Some(root) = &mut self.layout.root {
+            walk(root, min);
+        }
+    }
+
     /// Whether a panel's body is exposed by its selected tab or open stack entry.
     pub(crate) fn exposed(&self, panel: Panel) -> bool {
         if self.layout.floating.iter().any(|group| group.panels.get(group.active) == Some(&panel)) {
@@ -444,7 +466,7 @@ pub fn show(app: &mut crate::PdfCraftApp, ui: &mut egui::Ui) {
 fn panel_limits(panel: &Panel) -> PanelLimits {
     let (min, max_width) = match panel {
         Panel::Canvas => (egui::vec2(160.0, 160.0), 1_000_000.0),
-        Panel::Tools => (egui::vec2(240.0, 120.0), 520.0),
+        Panel::Tools => (egui::vec2(240.0, 120.0), 760.0),
         Panel::Inspector => (egui::vec2(260.0, 120.0), 520.0),
     };
     PanelLimits { min, max: egui::vec2(max_width, 1_000_000.0) }
@@ -460,6 +482,20 @@ mod tests {
         for panel in Panel::ALL {
             assert_ne!(crate::i18n::tr(lang, panel.label()), panel.label(), "{} remains untranslated", panel.id());
         }
+    }
+
+    #[test]
+    fn widen_tools_raises_a_narrow_column_and_keeps_a_wider_one() {
+        let tools_width = |w: &Workspace| match &w.layout.root {
+            Some(Node::Split { size: SplitSize::FixedFirst(v), .. }) => *v,
+            other => panic!("unexpected root {other:?}"),
+        };
+        let mut workspace = Workspace::default();
+        workspace.widen_tools(420.0);
+        assert_eq!(tools_width(&workspace), 420.0);
+        workspace.widen_tools(300.0);
+        assert_eq!(tools_width(&workspace), 420.0, "a wider column is the user's and stays");
+        workspace.validate().unwrap();
     }
 
     #[test]
